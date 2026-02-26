@@ -7,6 +7,15 @@ import json
 app = Flask(__name__)
 CORS(app) 
 
+# Health check endpoint
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status": "healthy",
+        "service": "Disease Prediction ML Model",
+        "endpoints": ["/health", "/predict"]
+    })
+
 # Load the model, encoder, and feature list
 model = joblib.load('symptom_model.pkl')
 encoder = joblib.load('symptom_encoder.pkl')
@@ -46,4 +55,4 @@ def predict():
         return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)

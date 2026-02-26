@@ -6,24 +6,28 @@ import HealthForm from "./pages/HealthForm";
 import Result from "./pages/Result";
 import History from "./pages/History";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar";
+// Remove Navbar import
+// import Navbar from "./components/Navbar";
 import Layout from "./components/Layout";
 
 function App() {
   return (
     <Router>
-      <Navbar />
+      {/* Remove Navbar */}
+      {/* <Navbar /> */}
+      
       <Routes>
+        {/* Public routes - no Layout */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected routes with Layout */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-             <Layout>
-
-              <Dashboard />
+              <Layout>
+                <Dashboard />
               </Layout>
             </ProtectedRoute>
           }
@@ -34,7 +38,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-              <HealthForm />
+                <HealthForm />
               </Layout>
             </ProtectedRoute>
           }
@@ -44,7 +48,10 @@ function App() {
           path="/result"
           element={
             <ProtectedRoute>
-              <Result />
+              {/* Result might need Layout or not? Add if needed */}
+              <Layout>
+                <Result />
+              </Layout>
             </ProtectedRoute>
           }
         />
@@ -54,7 +61,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Layout>
-              <History />
+                <History />
               </Layout>
             </ProtectedRoute>
           }

@@ -1,48 +1,119 @@
 const HealthRecord = require("../models/HealthRecord");
 const axios = require("axios");
 
+// Local ML service URL
+const ML_SERVICE_URL = "http://localhost:5000";
+
+// Predict symptoms using local ML model
 exports.predictSymptoms = async (req, res) => {
   try {
-    const { features } = req.body;
+    const { symptoms, age, temperature, bp } = req.body;
 
-    // Validate
-    if (!features || !Array.isArray(features) || features.length !== 25) {
+    // Validate symptoms
+    if (!symptoms || !Array.isArray(symptoms) || symptoms.length === 0) {
       return res.status(400).json({
-        message: "Exactly 25 normalized features are required",
+        message: "At least one symptom is required",
       });
     }
 
-    // Call ML API
-    const mlResponse = await axios.post(
-      "https://health-api-oo87.onrender.com/predict",
-      { features }
-    );
+    console.log("Calling local ML service with symptoms:", symptoms);
 
-    const { prediction, probability } = mlResponse.data;
+    // Call local ML API
+    const mlResponse = await axios.post(`${ML_SERVICE_URL}/predict`, {
+      symptoms: symptoms
+    });
 
-    // Risk logic based on probability
-    const risk =
-      probability > 0.8 ? "High" :
-      probability > 0.5 ? "Moderate" :
-      "Low";
+    console.log("ML Response:", mlResponse.data);
 
-    // Save to DB
+    // Format the response (mlResponse.data is already an array of predictions)
+    const predictions = mlResponse.data;
+
+    // Save to DB with all predictions
     const record = await HealthRecord.create({
       user: req.user._id,
-      features,
-      prediction,
-      risk,
-      probability,
+      symptoms,
+      age,
+      temperature,
+      bp,
+      predictions, // Store all predictions
+      createdAt: new Date()
     });
 
     res.status(201).json({
-      disease: prediction,
-      risk,
-      probability,
+      success: true,
+      predictions: predictions
     });
 
   } catch (error) {
     console.error("ML Prediction Error:", error.message);
-    res.status(500).json({ message: "Prediction failed" });
+    if (error.code === 'ECONNREFUSED') {
+      res.status(503).json({ 
+        success: false,
+        message: "ML service is not running. Please start the Flask app." 
+      });
+    } else {
+      res.status(500).json({ 
+        success: false,
+        message: "Prediction failed" 
+      });
+    }
+  }
+};
+
+// Get user's prediction history
+exports.getHistory = async (req, res) => {
+  try {
+    const records = await HealthRecord.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
+    
+    res.json(records);
+  } catch (error) {
+    console.error("History error:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch history" 
+    });
+  }
+};
+
+// Get single prediction record
+exports.getRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const record = await HealthRecord.findOne({ 
+      _id: id, 
+      user: req.user._id 
+    });
+    
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+    
+    res.json(record);
+  } catch (error) {
+    console.error("Get record error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Delete prediction record
+exports.deleteRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const record = await HealthRecord.findOneAndDelete({ 
+      _id: id, 
+      user: req.user._id 
+    });
+    
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+    
+    res.json({ message: "Record deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };

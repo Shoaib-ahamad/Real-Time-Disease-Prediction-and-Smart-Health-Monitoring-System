@@ -1,46 +1,32 @@
 const mongoose = require("mongoose");
 
-const healthRecordSchema = new mongoose.Schema(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    age: {
-      type: Number,
-      required: true,
-    },
-    temperature: {
-      type: Number,
-      required: true,
-    },
-    bp: {
-      type: String,
-      required: true,
-    },
-    symptoms: {
-      type: [String],
-      required: true,
-    },
-    prediction: {
-      type: String,
-      required: true,
-    },
-    risk: {
-      type: String,
-      required: true,
-    },
-    probability: {
-      type: Number,
-      required: true,
-    },
-    features: {
-  type: [Number],
-  required: true
-},
+const HealthRecordSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  { timestamps: true }
-);
+  symptoms: [{
+    type: String,
+    required: true,
+  }],
+  age: {
+    type: Number,
+  },
+  temperature: {
+    type: Number,
+  },
+  bp: {
+    type: String,
+  },
+  predictions: [{
+    disease: String,
+    confidence: String,
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = mongoose.model("HealthRecord", healthRecordSchema);
+module.exports = mongoose.model("HealthRecord", HealthRecordSchema);

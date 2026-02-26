@@ -1,18 +1,15 @@
 require("dotenv").config();
 
 const express = require("express");
-//const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-
 const rateLimit = require("express-rate-limit");
-//render k liye
 
-
-
-//dotenv.config();
-//temp check
-//console.log("MONGO_URI:", process.env.MONGO_URI);
+// Import routes
+const authRoutes = require("./routes/authRoutes");
+const predictionRoutes = require("./routes/predictionRoutes");
+const mlRoutes = require("./routes/mlRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 connectDB();
 
@@ -25,10 +22,10 @@ app.use(cors({
 
 app.use(express.json());
 
-//limiter chat
+// Rate limiter for chat
 const aiLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 5, // limit each user to 20 requests per window
+  max: 5, // limit each user to 5 requests per 10 minutes
   message: {
     reply: "Too many AI requests. Please try again later.",
   },
@@ -36,13 +33,11 @@ const aiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/predict", require("./routes/predictionRoutes"));
-
-const chatRoutes = require("./routes/chatRoutes");
-app.use("/api/chat", aiLimiter,chatRoutes);
-
+// Register all routes
+app.use("/api/auth", authRoutes);
+app.use("/api/predict", predictionRoutes);
+app.use("/api/ml", mlRoutes);  // ← THIS WAS MISSING
+app.use("/api/chat", aiLimiter, chatRoutes);
 
 app.get("/", (req, res) => {
   res.send("API Running");
@@ -52,4 +47,9 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Routes registered:`);
+  console.log(`- /api/auth`);
+  console.log(`- /api/predict`);
+  console.log(`- /api/ml`);
+  console.log(`- /api/chat (rate limited)`);
 });
