@@ -1,92 +1,94 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+console.log('🌐 API Base URL:', API_BASE_URL);
+
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
-});
+// Add token to requests
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        console.log('🚀 Request:', config.method.toUpperCase(), config.url);
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
-// ============= AUTH ENDPOINTS =============
-export const register = (userData) => API.post('/auth/register', userData);
-export const login = (credentials) => API.post('/auth/login', credentials);
+// Response interceptor for debugging
+api.interceptors.response.use(
+    (response) => {
+        console.log('✅ Response:', response.status, response.config.url);
+        return response;
+    },
+    (error) => {
+        console.error('❌ API Error:', error.response?.status, error.config?.url);
+        return Promise.reject(error);
+    }
+);
 
-// ============= ML PREDICTION ENDPOINTS =============
-/**
- * Get list of all available symptoms from the ML model
- * @returns {Promise} - Returns list of symptoms
- */
-export const getSymptoms = async () => {
-  try {
-    const response = await API.get('/ml/symptoms');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching symptoms:', error);
-    throw error;
-  }
-};
-
-/**
- * Make disease prediction based on symptoms
- * @param {Array} symptoms - Array of symptom strings
- * @returns {Promise} - Returns prediction results
- */
-export const predictDisease = async (symptoms) => {
-  try {
-    const response = await API.post('/ml/predict', { symptoms });
-    return response.data;
-  } catch (error) {
-    console.error('Error making prediction:', error);
-    throw error;
-  }
-};
-
-/**
- * Check ML service health status
- * @returns {Promise} - Returns health status
- */
+// ============ ML SERVICE API (for symptoms list) ============
 export const checkMLHealth = async () => {
-  try {
-    const response = await API.get('/ml/health');
+    const response = await api.get('/ml/health');
     return response.data;
-  } catch (error) {
-    console.error('ML health check failed:', error);
-    return { status: 'disconnected' };
-  }
 };
 
-// ============= HEALTH RECORDS ENDPOINTS =============
-/**
- * Save a health record with prediction results
- * @param {Object} recordData - Health record data
- * @returns {Promise} - Returns saved record
- */
-export const saveHealthRecord = (recordData) => API.post('/predictions', recordData);
+export const getSymptoms = async () => {
+    const response = await api.get('/ml/symptoms');
+    return response.data;
+};
 
-/**
- * Get user's health history
- * @returns {Promise} - Returns list of health records
- */
-export const getHealthHistory = () => API.get('/predictions/history');
+// ============ PREDICTION API (for making predictions) ============
+export const predictDisease = async (symptoms, userData = {}) => {
+    // This calls the CORRECT endpoint: /api/predict/symptoms
+    const response = await api.post('/predict/symptoms', {
+        symptoms,
+        age: userData.age,
+        temperature: userData.temperature,
+        bp: userData.bp
+    });
+    return response.data;
+};
 
-/**
- * Get specific health record by ID
- * @param {string} id - Record ID
- * @returns {Promise} - Returns health record
- */
-export const getHealthRecord = (id) => API.get(`/predictions/${id}`);
+// ============ HISTORY API ============
+export const getHistory = async () => {
+    const response = await api.get('/predict/history');
+    return response.data;
+};
 
-// ============= CHATBOT ENDPOINTS =============
-/**
- * Send message to chatbot
- * @param {string} message - User message
- * @returns {Promise} - Returns chatbot response
- */
-export const sendChatMessage = (message) => API.post('/chat', { message });
+export const getPredictionRecord = async (id) => {
+    const response = await api.get(`/predict/${id}`);
+    return response.data;
+};
 
-export default API;
+export const deletePredictionRecord = async (id) => {
+    const response = await api.delete(`/predict/${id}`);
+    return response.data;
+};
+
+// ============ AUTH API ============
+export const register = async (userData) => {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+};
+
+export const login = async (credentials) => {
+    const response = await api.post('/auth/login', credentials);
+    return response.data;
+};
+
+export const getProfile = async () => {
+    const response = await api.get('/auth/profile');
+    return response.data;
+};
+
+export default api;

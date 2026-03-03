@@ -14,7 +14,7 @@ const History = () => {
     fetchHistory();
   }, []);
 
-  const fetchHistory = async () => {
+ /* const fetchHistory = async () => {
     try {
       const res = await API.get("/predict/history");
       setRecords(res.data);
@@ -24,9 +24,31 @@ const History = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/
+  const fetchHistory = async () => {
+  try {
+    const res = await API.get("/predict/history");
+    console.log('History response:', res.data); // Debug log
+    
+    // Handle both response formats
+    if (res.data.data && Array.isArray(res.data.data)) {
+      setRecords(res.data.data);
+    } else if (Array.isArray(res.data)) {
+      setRecords(res.data);
+    } else {
+      console.error('Unexpected response format:', res.data);
+      setRecords([]);
+      setError("Received unexpected data format from server");
+    }
+  } catch (err) {
+    console.error("History Error:", err.response?.data || err.message);
+    setError("Failed to fetch history");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleDelete = async (id) => {
+ /* const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this record?")) {
       return;
     }
@@ -41,7 +63,28 @@ const History = () => {
     } finally {
       setDeleting(false);
     }
-  };
+  };*/
+  const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this record?")) {
+    return;
+  }
+
+  setDeleting(true);
+  try {
+    // Change this line - wrong endpoint
+    // await API.delete(`/predictions/${id}`);  // <-- WRONG
+    
+    // To this - correct endpoint
+    await API.delete(`/predict/${id}`);  // <-- CORRECT
+    
+    setRecords(records.filter(record => record._id !== id));
+  } catch (err) {
+    console.error("Delete Error:", err);
+    setError("Failed to delete record");
+  } finally {
+    setDeleting(false);
+  }
+};
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);

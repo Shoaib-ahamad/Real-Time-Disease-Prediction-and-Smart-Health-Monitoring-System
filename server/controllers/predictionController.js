@@ -2,7 +2,7 @@ const HealthRecord = require("../models/HealthRecord");
 const axios = require("axios");
 
 // Local ML service URL
-const ML_SERVICE_URL = "http://localhost:5000";
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:5001";
 
 // Predict symptoms using local ML model
 exports.predictSymptoms = async (req, res) => {

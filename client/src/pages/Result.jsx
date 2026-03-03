@@ -33,10 +33,10 @@ const Result = () => {
     );
   }
 
-  const handleSaveToHistory = async () => {
+  /*const handleSaveToHistory = async () => {
     setSaving(true);
     try {
-      await API.post("/predictions", {
+      await API.post("/ml-model/symptons", {
         symptoms,
         predictions,
         userData,
@@ -49,8 +49,54 @@ const Result = () => {
     } finally {
       setSaving(false);
     }
-  };
+  };*/
 
+  const handleSaveToHistory = async () => {
+  setSaving(true);
+  try {
+    // Prepare the data in the format your backend expects
+    const saveData = {
+      symptoms: symptoms,
+      age: userData?.age,
+      temperature: userData?.temperature,
+      bp: userData?.bp,
+      predictions: predictions.map(p => ({
+        disease: p.disease,
+        confidence: p.confidence,
+        confidence_level: p.confidence_level || 
+          (parseFloat(p.confidence) >= 70 ? "High" : 
+           parseFloat(p.confidence) >= 40 ? "Medium" : "Low")
+      }))
+    };
+
+    console.log('📤 Saving to history:', saveData);
+    console.log('📍 Using API base URL:', API.defaults.baseURL);
+
+    // Make sure we're using the full URL with /api prefix
+    const response = await API.post('/predict/symptoms', saveData);
+    
+    console.log('✅ Save response:', response.data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  } catch (error) {
+    console.error("❌ Failed to save to history:", error);
+    if (error.response) {
+      console.error('Server response:', error.response.data);
+      console.error('Status:', error.response.status);
+      console.error('URL that was called:', error.config?.url);
+      console.error('Full URL:', error.config?.baseURL + error.config?.url);
+      alert(error.response.data.message || "Failed to save to history");
+    } else if (error.request) {
+      console.error('No response received');
+      alert("Cannot connect to server. Please check if backend is running.");
+    } else {
+      console.error('Error:', error.message);
+      alert("An unexpected error occurred");
+    }
+  } finally {
+    setSaving(false);
+  }
+};
   const getConfidenceColor = (confidence) => {
     const num = parseFloat(confidence);
     if (num >= 70) return styles.highConfidence;

@@ -88,7 +88,9 @@ const HealthForm = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
+ /* const handleSubmit = async (e) => {
+
+
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -133,7 +135,61 @@ const HealthForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };*/
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+        // Validate form data
+        if (selectedSymptoms.length === 0) {
+            throw new Error("Please select at least one symptom");
+        }
+
+        if (!formData.age || formData.age < 0 || formData.age > 150) {
+            throw new Error("Please enter a valid age (0-150)");
+        }
+
+        if (!formData.temperature || formData.temperature < 90 || formData.temperature > 110) {
+            throw new Error("Please enter a valid temperature (90-110°F)");
+        }
+
+        if (!formData.bp || !formData.bp.match(/^\d{2,3}\/\d{2,3}$/)) {
+            throw new Error("Please enter blood pressure in format: 120/80");
+        }
+
+        console.log("Making prediction with:", {
+            symptoms: selectedSymptoms,
+            userData: formData
+        });
+
+        // Make prediction using the correct endpoint
+        const result = await predictDisease(selectedSymptoms, formData);
+        
+        console.log("Prediction result:", result);
+
+        // Navigate to result page
+        navigate("/result", { 
+            state: { 
+                predictions: result.predictions,
+                symptoms: selectedSymptoms,
+                userData: {
+                    age: formData.age,
+                    temperature: formData.temperature,
+                    bp: formData.bp
+                }
+            } 
+        });
+
+    } catch (err) {
+        console.error("Prediction Error:", err);
+        setError(err.response?.data?.message || err.message || "Prediction failed. Please try again.");
+    } finally {
+        setLoading(false);
+    }
+};
 
   // Styles with fixed text colors
   const styles = {
