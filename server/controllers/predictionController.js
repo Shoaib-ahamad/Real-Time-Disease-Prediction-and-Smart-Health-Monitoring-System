@@ -2,7 +2,7 @@ const HealthRecord = require("../models/HealthRecord");
 const axios = require("axios");
 
 // Local ML service URL
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:5001";
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL;
 
 // Predict symptoms using local ML model
 exports.predictSymptoms = async (req, res) => {
@@ -47,14 +47,14 @@ exports.predictSymptoms = async (req, res) => {
   } catch (error) {
     console.error("ML Prediction Error:", error.message);
     if (error.code === 'ECONNREFUSED') {
-      res.status(503).json({ 
+      res.status(503).json({
         success: false,
-        message: "ML service is not running. Please start the Flask app." 
+        message: "ML service is not running. Please start the Flask app."
       });
     } else {
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: "Prediction failed" 
+        message: "Prediction failed"
       });
     }
   }
