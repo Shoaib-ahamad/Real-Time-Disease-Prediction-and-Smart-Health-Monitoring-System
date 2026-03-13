@@ -3,10 +3,9 @@ const axios = require("axios");
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL;
 
-// Health check (Checks if Render ML service is awake)
+// 1. Health check (Checks if ML service is awake)
 const checkHealth = async (req, res) => {
   try {
-    // Increase timeout to 60s for Render cold starts
     const response = await axios.get(`${ML_SERVICE_URL}/health`, { timeout: 60000 });
     res.json(response.data);
   } catch (error) {
@@ -15,7 +14,7 @@ const checkHealth = async (req, res) => {
   }
 };
 
-// Predict symptoms
+// 2. Predict symptoms
 const predictSymptoms = async (req, res) => {
   try {
     const { symptoms, age, temperature, bp } = req.body;
@@ -24,11 +23,11 @@ const predictSymptoms = async (req, res) => {
       return res.status(400).json({ message: "At least one symptom is required" });
     }
 
-    // Added 60s timeout for cold starts
     const mlResponse = await axios.post(`${ML_SERVICE_URL}/predict`, { symptoms }, { timeout: 60000 });
     const predictions = mlResponse.data;
 
-    const record = await HealthRecord.create({
+    // The 'predictions' object now contains the 'precautions' from app.py
+    await HealthRecord.create({
       user: req.user._id,
       symptoms,
       age,
@@ -43,14 +42,11 @@ const predictSymptoms = async (req, res) => {
 
   } catch (error) {
     console.error("ML Prediction Error:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "ML service is unavailable"
-    });
+    res.status(500).json({ success: false, message: "ML service is unavailable" });
   }
 };
 
-// Predict report
+// 3. Predict report
 const predictReport = async (req, res) => {
   try {
     const { report_data, age, bp } = req.body;
@@ -59,25 +55,28 @@ const predictReport = async (req, res) => {
       return res.status(400).json({ message: "Blood report data is required" });
     }
 
-    // Added 60s timeout for cold starts
+    // Explicitly convert values to numbers before sending to ML service
+    // This prevents the 400 error caused by string inputs
+    const payload = {};
+    for (const key in report_data) {
+      payload[key] = parseFloat(report_data[key]) || 0;
+    }
+
+    // Add age and bp to the flat payload for the ML service
     const mlResponse = await axios.post(`${ML_SERVICE_URL}/predict-report`, {
-      ...report_data,
-      age,
-      bp
+      ...payload,
+      age: parseFloat(age) || 0,
+      bp: bp // BP is usually handled as a string "120/80"
     }, { timeout: 60000 });
 
     const predictions = mlResponse.data;
 
-    const formattedReportData = {};
-    for (const key in report_data) {
-      formattedReportData[key] = parseFloat(report_data[key]);
-    }
-
-    const record = await HealthRecord.create({
+    // Save to database
+    await HealthRecord.create({
       user: req.user._id,
       age,
       bp,
-      reportData: formattedReportData, // Use the converted numeric data
+      reportData: payload,
       predictions,
       predictionType: "blood_report",
       createdAt: new Date()
@@ -86,12 +85,15 @@ const predictReport = async (req, res) => {
     res.status(201).json({ success: true, predictions });
 
   } catch (error) {
-    console.error("ML Report Prediction Error:", error.message);
-    res.status(500).json({ success: false, message: "Report prediction failed" });
+    console.error("ML Report Prediction Error:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      message: error.response?.data?.error || "Report prediction failed"
+    });
   }
 };
 
-// Get symptoms list from ML service
+// 4. Get symptoms list
 const getSymptomsList = async (req, res) => {
   try {
     const response = await axios.get(`${ML_SERVICE_URL}/symptoms`, { timeout: 60000 });
@@ -102,7 +104,7 @@ const getSymptomsList = async (req, res) => {
   }
 };
 
-// Get user history
+// 5. History and Records
 const getHistory = async (req, res) => {
   try {
     const records = await HealthRecord.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -112,7 +114,6 @@ const getHistory = async (req, res) => {
   }
 };
 
-// Get single record
 const getRecord = async (req, res) => {
   try {
     const record = await HealthRecord.findOne({ _id: req.params.id, user: req.user._id });
@@ -123,7 +124,6 @@ const getRecord = async (req, res) => {
   }
 };
 
-// Delete record
 const deleteRecord = async (req, res) => {
   try {
     const record = await HealthRecord.findOneAndDelete({ _id: req.params.id, user: req.user._id });
