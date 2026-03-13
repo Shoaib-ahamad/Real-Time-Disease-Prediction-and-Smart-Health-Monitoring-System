@@ -48,26 +48,30 @@ const HealthForm = () => {
   }, [searchTerm, symptomsList]);
 
   const checkMLHealthStatus = async () => {
-      try {
-        const status = await checkMLHealth();
-        // Check for both "healthy" (Flask default) and "online"
-        if (status.status === "healthy" || status.status === "online") {
-          setMlStatus("online");
-        } else {
-          setMlStatus("offline");
-        }
-      } catch (err) {
+    try {
+      const status = await checkMLHealth();
+      if (status.status === "healthy" || status.status === "online") {
+        setMlStatus("online");
+      } else {
         setMlStatus("offline");
       }
+    } catch (err) {
+      setMlStatus("offline");
+    }
   };
 
   const loadSymptoms = async () => {
     setLoadingSymptoms(true);
     try {
       const response = await getSymptoms();
-      if (response && response.symptoms) {
-        setSymptomsList(response.symptoms);
-        setFilteredSymptoms(response.symptoms.slice(0, 50));
+      // Supports both { symptoms: [] } and raw array []
+      const list = response.symptoms || (Array.isArray(response) ? response : null);
+
+      if (list) {
+        setSymptomsList(list);
+        setFilteredSymptoms(list.slice(0, 50));
+      } else {
+        setError("Invalid symptoms data format.");
       }
     } catch (err) {
       setError("Failed to load symptoms list.");
@@ -101,7 +105,8 @@ const HealthForm = () => {
         if (selectedSymptoms.length === 0) throw new Error("Select at least one symptom");
         result = await predictDisease(selectedSymptoms, formData);
       } else {
-        result = await predictByReport({ report_data: reportData }, formData);
+        // Corrected: Passing reportData directly
+        result = await predictByReport(reportData, formData);
       }
 
       navigate("/result", {
@@ -114,56 +119,39 @@ const HealthForm = () => {
         }
       });
     } catch (err) {
-        console.error("Prediction Error:", err);
-        setError(err.response?.data?.message || err.message || "Prediction failed.");
+      console.error("Prediction Error:", err);
+      setError(err.response?.data?.message || err.message || "Prediction failed.");
     } finally {
       setLoading(false);
     }
   };
 
   const styles = {
-    container: { maxWidth: "700px", margin: "20px auto", padding: "20px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" },
+    container: { maxWidth: "700px", margin: "20px auto", padding: "20px", backgroundColor: "#ffffff", borderRadius: "12px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)" },
     header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" },
-    title: { fontSize: "22px", color: "#333333" },
-    toggleContainer: { display: "flex", backgroundColor: "#f1f3f5", borderRadius: "25px", padding: "5px", marginBottom: "25px" },
-    toggleBtn: { flex: 1, padding: "10px", border: "none", borderRadius: "20px", cursor: "pointer", fontWeight: "600", transition: "0.3s" },
-    activeToggle: { backgroundColor: "#007bff", color: "#ffffff" },
-    inactiveToggle: { backgroundColor: "transparent", color: "#6c757d" },
+    title: { fontSize: "22px", color: "#1e293b", fontWeight: "700" },
+    toggleContainer: { display: "flex", backgroundColor: "#f1f5f9", borderRadius: "25px", padding: "5px", marginBottom: "25px" },
+    toggleBtn: { flex: 1, padding: "12px", border: "none", borderRadius: "20px", cursor: "pointer", fontWeight: "600", transition: "0.3s" },
+    activeToggle: { backgroundColor: "#4f46e5", color: "#ffffff" },
+    inactiveToggle: { backgroundColor: "transparent", color: "#64748b" },
     gridContainer: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" },
     formGroup: { marginBottom: "15px" },
-    label: { display: "block", marginBottom: "5px", fontWeight: "600", color: "#333333", fontSize: "14px" },
-    input: {
-      width: "100%",
-      padding: "10px",
-      border: "1px solid #ced4da",
-      borderRadius: "4px",
-      boxSizing: "border-box",
-      color: "#000000", // Fix for invisible text
-      backgroundColor: "#ffffff"
-    },
-    symptomsContainer: { border: "1px solid #ced4da", borderRadius: "4px", padding: "10px", maxHeight: "250px", overflowY: "auto", backgroundColor: "#fff" },
-    symptomsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
-    symptomBtn: {
-      padding: "8px",
-      border: "1px solid #ced4da",
-      backgroundColor: "#f8f9fa",
-      borderRadius: "4px",
-      cursor: "pointer",
-      fontSize: "13px",
-      textAlign: "left",
-      color: "#333333" // Fix for invisible symptom names
-    },
-    symptomBtnSelected: { backgroundColor: "#007bff", color: "#ffffff", borderColor: "#0056b3" },
-    button: { width: "100%", padding: "14px", backgroundColor: "#28a745", color: "#ffffff", border: "none", borderRadius: "4px", fontSize: "16px", cursor: "pointer", marginTop: "20px" },
-    error: { color: "#dc3545", backgroundColor: "#f8d7da", padding: "10px", borderRadius: "4px", marginTop: "15px" }
+    label: { display: "block", marginBottom: "8px", fontWeight: "600", color: "#334155", fontSize: "14px" },
+    input: { width: "100%", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "8px", boxSizing: "border-box", color: "#1e293b", backgroundColor: "#f8fafc" },
+    symptomsContainer: { border: "1px solid #e2e8f0", borderRadius: "8px", padding: "15px", maxHeight: "250px", overflowY: "auto", backgroundColor: "#ffffff" },
+    symptomsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" },
+    symptomBtn: { padding: "10px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", borderRadius: "6px", cursor: "pointer", fontSize: "13px", textAlign: "left", color: "#475569", transition: "0.2s" },
+    symptomBtnSelected: { backgroundColor: "#4f46e5", color: "#ffffff", borderColor: "#4f46e5" },
+    button: { width: "100%", padding: "16px", backgroundColor: "#10b981", color: "#ffffff", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "600", cursor: "pointer", marginTop: "20px", transition: "0.2s" },
+    error: { color: "#b91c1c", backgroundColor: "#fef2f2", padding: "12px", borderRadius: "8px", marginTop: "15px", border: "1px solid #fee2e2" }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Health Analysis</h2>
-        <div style={{fontSize: '14px', color: mlStatus === "online" ? "green" : "red"}}>
-            {mlStatus === "online" ? "🟢 Online" : "🔴 Offline"}
+        <div style={{fontSize: '14px', fontWeight: '600', color: mlStatus === "online" ? "#10b981" : "#ef4444"}}>
+            {mlStatus === "online" ? "🟢 ML Service Online" : "🔴 ML Service Offline"}
         </div>
       </div>
 
@@ -173,25 +161,25 @@ const HealthForm = () => {
           style={{...styles.toggleBtn, ...(activeForm === "symptoms" ? styles.activeToggle : styles.inactiveToggle)}}
           onClick={() => setActiveForm("symptoms")}
         >
-          Symptom Based
+          Symptom Analysis
         </button>
         <button
           type="button"
           style={{...styles.toggleBtn, ...(activeForm === "report" ? styles.activeToggle : styles.inactiveToggle)}}
           onClick={() => setActiveForm("report")}
         >
-          Blood Report Based
+          Blood Report
         </button>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div style={styles.gridContainer}>
             <div style={styles.formGroup}>
-                <label style={styles.label}>Age</label>
-                <input type="number" name="age" value={formData.age} onChange={handleChange} required style={styles.input} />
+                <label style={styles.label}>Patient Age</label>
+                <input type="number" name="age" value={formData.age} onChange={handleChange} required style={styles.input} placeholder="e.g. 25" />
             </div>
             <div style={styles.formGroup}>
-                <label style={styles.label}>Blood Pressure (Sys/Dia)</label>
+                <label style={styles.label}>Blood Pressure</label>
                 <input type="text" name="bp" placeholder="120/80" value={formData.bp} onChange={handleChange} required style={styles.input} />
             </div>
         </div>
@@ -199,38 +187,42 @@ const HealthForm = () => {
         {activeForm === "symptoms" && (
           <div className="slide-in">
              <div style={styles.formGroup}>
-                <label style={styles.label}>Temperature (°F)</label>
-                <input type="number" name="temperature" value={formData.temperature} onChange={handleChange} required step="0.1" style={styles.input} />
+                <label style={styles.label}>Body Temperature (°F)</label>
+                <input type="number" name="temperature" value={formData.temperature} onChange={handleChange} required step="0.1" style={styles.input} placeholder="98.6" />
             </div>
             <div style={styles.formGroup}>
-              <label style={styles.label}>Search & Select Symptoms</label>
+              <label style={styles.label}>Select Symptoms ({selectedSymptoms.length} selected)</label>
               <input
                 type="text"
-                placeholder="Search symptoms..."
+                placeholder="🔍 Search symptoms (e.g. fever, headache)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{...styles.input, marginBottom: '10px'}}
+                style={{...styles.input, marginBottom: '15px'}}
               />
               <div style={styles.symptomsContainer}>
-                <div style={styles.symptomsGrid}>
-                  {filteredSymptoms.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => toggleSymptom(s)}
-                      style={{...styles.symptomBtn, ...(selectedSymptoms.includes(s) ? styles.symptomBtnSelected : {})}}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+                {loadingSymptoms ? (
+                  <p style={{textAlign: 'center', color: '#64748b'}}>Loading symptoms list...</p>
+                ) : (
+                  <div style={styles.symptomsGrid}>
+                    {filteredSymptoms.map(s => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => toggleSymptom(s)}
+                        style={{...styles.symptomBtn, ...(selectedSymptoms.includes(s) ? styles.symptomBtnSelected : {})}}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
         {activeForm === "report" && (
-          <div style={styles.gridContainer}>
+          <div style={{...styles.gridContainer, maxHeight: '400px', overflowY: 'auto', paddingRight: '10px'}}>
             {Object.keys(reportData).map((key) => (
               <div key={key} style={styles.formGroup}>
                 <label style={styles.label}>{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}</label>
@@ -241,14 +233,15 @@ const HealthForm = () => {
                   value={reportData[key]}
                   onChange={handleReportChange}
                   style={styles.input}
+                  placeholder="0.00"
                 />
               </div>
             ))}
           </div>
         )}
 
-        <button type="submit" style={styles.button} disabled={loading}>
-          {loading ? "Processing..." : "Get Prediction"}
+        <button type="submit" style={styles.button} disabled={loading || mlStatus === "offline"}>
+          {loading ? "Analyzing Data..." : "Generate Diagnosis Report"}
         </button>
 
         {error && <div style={styles.error}>{error}</div>}
