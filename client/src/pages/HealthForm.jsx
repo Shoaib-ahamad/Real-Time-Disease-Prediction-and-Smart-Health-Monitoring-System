@@ -37,7 +37,7 @@ const HealthForm = () => {
   useEffect(() => {
     if (symptomsList.length > 0) {
       if (searchTerm.trim() === "") {
-        setFilteredSymptoms(symptomsList.slice(0, 50));
+        setFilteredSymptoms(symptomsList);
       } else {
         const filtered = symptomsList.filter(symptom =>
           symptom.toLowerCase().includes(searchTerm.toLowerCase())
