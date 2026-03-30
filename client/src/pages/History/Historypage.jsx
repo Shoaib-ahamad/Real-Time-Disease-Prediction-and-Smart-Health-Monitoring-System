@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getHistory, deletePredictionRecord } from "../services/api";
+import { getHistory, deletePredictionRecord } from "../../services/api";
 
 const History = () => {
   const [records, setRecords] = useState([]);
@@ -21,6 +21,7 @@ const History = () => {
       setRecords(Array.isArray(data) ? data : []);
       setError("");
     } catch (err) {
+      console.error("Failed to load history:", err.message);
       setError("Failed to load your history.");
     } finally {
       setLoading(false);
@@ -34,6 +35,7 @@ const History = () => {
       await deletePredictionRecord(id);
       setRecords(records.filter(record => record._id !== id));
     } catch (err) {
+      console.error("Failed to delete record:", err.message);
       setError("Failed to delete record");
     } finally {
       setDeleting(false);

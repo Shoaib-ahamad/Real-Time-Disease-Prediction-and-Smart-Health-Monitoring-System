@@ -1,25 +1,23 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import HealthForm from "./pages/HealthForm";
-import Result from "./pages/Result";
-import History from "./pages/History";
-import ProtectedRoute from "./components/ProtectedRoute";
-// Remove Navbar import
-// import Navbar from "./components/Navbar";
-import Layout from "./components/Layout";
+import Login from "./pages/Login/Loginpage";
+import Register from "./pages/Register/Registerpage";
+import Dashboard from "./pages/Dashboard/Dashboardpage";
+import HealthForm from "./pages/HealthForm/HealthFormpage";
+import Result from "./pages/Result/Resultpage";
+import History from "./pages/History/Historypage";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import ForgotPassword from "./pages/Forgetpassword/Forgetpasswordpage";
+import ResetPassword from "./pages/ResetPassword/ResetPasswordpage";
+import Layout from "./components/Layout/Layout";
 
 function App() {
   return (
     <Router>
-      {/* Remove Navbar */}
-      {/* <Navbar /> */}
-      
       <Routes>
-        {/* Public routes - no Layout */}
+        {/* Public routes */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Protected routes with Layout */}
         <Route
@@ -48,7 +46,6 @@ function App() {
           path="/result"
           element={
             <ProtectedRoute>
-              {/* Result might need Layout or not? Add if needed */}
               <Layout>
                 <Result />
               </Layout>
@@ -66,6 +63,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

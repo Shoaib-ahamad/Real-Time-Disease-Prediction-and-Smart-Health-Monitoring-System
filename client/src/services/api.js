@@ -2,8 +2,6 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-console.log('🌐 API Base URL:', API_BASE_URL);
-
 const api = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -18,22 +16,15 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        console.log('🚀 Request:', config.method.toUpperCase(), config.url);
         return config;
     },
     (error) => Promise.reject(error)
 );
 
-// Response interceptor for debugging
+// Response interceptor for error handling
 api.interceptors.response.use(
-    (response) => {
-        console.log('✅ Response:', response.status, response.config.url);
-        return response;
-    },
-    (error) => {
-        console.error('❌ API Error:', error.response?.status, error.config?.url);
-        return Promise.reject(error);
-    }
+    (response) => response,
+    (error) => Promise.reject(error)
 );
 
 // ============ ML SERVICE API (Status & Initialization) ============
@@ -43,9 +34,10 @@ export const checkMLHealth = async () => {
         const response = await api.get('/predictions/health');
         return response.data;
     } catch (error) {
-            // If the request fails, return offline so the UI can show the error
-            return { status: "offline" };
-        }
+        console.error("ML health check failed:", error.message);
+        // If the request fails, return offline so the UI can show the error
+        return { status: "offline" };
+    }
 };
 
 export const getSymptoms = async () => {
