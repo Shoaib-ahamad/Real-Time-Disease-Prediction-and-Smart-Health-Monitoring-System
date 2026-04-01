@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
-import API from "../services/api";
-import { motion, AnimatePresence } from "framer-motion";
+import API from "../../services/api";
+import { motion, AnimatePresence } from "framer-motion"; // eslint-disable-line no-unused-vars
 
 
 const Chatbot = () => {

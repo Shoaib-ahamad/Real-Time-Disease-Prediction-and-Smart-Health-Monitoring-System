@@ -1,10 +1,20 @@
-import { NavLink } from "react-router-dom";
-import { motion } from "framer-motion";
-import Chatbot from "./Chatbot";
+import { NavLink, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion"; // eslint-disable-line no-unused-vars
+import Chatbot from "../Chatbot/Chatbot";
+import { secureStorage } from "../../utils/secureStorage";
 
 import { LayoutDashboard, Activity, History, LogOut } from "lucide-react";
 
 const Layout = ({ children }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    // Clear stored credentials securely
+    secureStorage.clear();
+    navigate("/");
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white">
 
@@ -47,7 +57,10 @@ const Layout = ({ children }) => {
 
         </div>
 
-        <button className="flex items-center gap-3 text-gray-400 hover:text-red-400 transition">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 text-gray-400 hover:text-red-400 transition"
+        >
           <LogOut size={20} />
           Logout
         </button>

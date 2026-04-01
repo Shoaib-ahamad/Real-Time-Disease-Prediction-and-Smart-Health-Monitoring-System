@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import API, { getSymptoms, predictDisease, predictByReport, checkMLHealth } from "../services/api";
+import API, { getSymptoms, predictDisease, predictByReport, checkMLHealth } from "../../services/api";
 
 const HealthForm = () => {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const HealthForm = () => {
   useEffect(() => {
     if (symptomsList.length > 0) {
       if (searchTerm.trim() === "") {
-        setFilteredSymptoms(symptomsList);
+        setFilteredSymptoms(symptomsList.slice(0, 50));
       } else {
         const filtered = symptomsList.filter(symptom =>
           symptom.toLowerCase().includes(searchTerm.toLowerCase())
@@ -56,6 +56,7 @@ const HealthForm = () => {
         setMlStatus("offline");
       }
     } catch (err) {
+      console.error("ML health check failed:", err.message);
       setMlStatus("offline");
     }
   };
@@ -74,6 +75,7 @@ const HealthForm = () => {
         setError("Invalid symptoms data format.");
       }
     } catch (err) {
+      console.error("Failed to load symptoms:", err.message);
       setError("Failed to load symptoms list.");
     } finally {
       setLoadingSymptoms(false);
