@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getHistory, deletePredictionRecord } from "../../services/api";
+import "./History.css";
 
 const History = () => {
   const [records, setRecords] = useState([]);
@@ -57,48 +58,34 @@ const History = () => {
     });
   };
 
-  const styles = {
-    container: { maxWidth: "800px", margin: "40px auto", padding: "20px", fontFamily: "Arial, sans-serif" },
-    header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" },
-    title: { fontSize: "28px", color: "#333333" }, // Forced Dark
-    backButton: { padding: "10px 20px", backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" },
-    recordCard: { border: "1px solid #e9ecef", borderRadius: "10px", marginBottom: "15px", backgroundColor: "#ffffff", overflow: "hidden", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" },
-    recordSummary: { padding: "20px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8f9fa" },
-    diseaseName: { fontSize: "18px", fontWeight: "bold", color: "#212529", marginBottom: "4px" }, // FIXED: Explicit Dark Text
-    dateText: { fontSize: "13px", color: "#6c757d" }, // Explicit Gray Text
-    expandedContent: { padding: "20px", borderTop: "1px solid #eee", backgroundColor: "#ffffff" },
-    label: { fontWeight: "bold", color: "#495057", marginRight: "10px" },
-    value: { color: "#212529" },
-    badge: { color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" },
-    deleteButton: { padding: "8px 16px", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }
-  };
-
-  if (loading) return <div style={{textAlign: 'center', marginTop: '50px', color: '#007bff'}}>Loading History...</div>;
+  if (loading) return <div className="loadingMessage">Loading History...</div>;
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Prediction History</h1>
-        <button onClick={() => navigate("/dashboard")} style={styles.backButton}>← Dashboard</button>
+    <div className="container">
+      <div className="header">
+        <h1 className="title">Prediction History</h1>
+        <button onClick={() => navigate("/dashboard")} className="backButton">← Dashboard</button>
       </div>
 
-      {error && <div style={{color: '#721c24', backgroundColor: '#f8d7da', padding: '10px', borderRadius: '5px', marginBottom: '20px'}}>{error}</div>}
+      {error && <div className="errorMessage">{error}</div>}
 
       {records.length === 0 ? (
-        <p style={{textAlign: 'center', color: '#666'}}>No records found.</p>
+        <p className="emptyMessage">No records found.</p>
       ) : (
         records.map((record) => (
-          <div key={record._id} style={styles.recordCard}>
-            <div style={styles.recordSummary} onClick={() => toggleExpand(record._id)}>
+          <div key={record._id} className="recordCard">
+            <div className="recordSummary" onClick={() => toggleExpand(record._id)}>
               <div>
-                {/* DISEASE NAME - NOW FORCED DARK */}
-                <div style={styles.diseaseName}>
+                <div className="diseaseName">
                   {record.predictions?.[0]?.disease || "Unknown Condition"}
                 </div>
-                <div style={styles.dateText}>{formatDate(record.createdAt)}</div>
+                <div className="dateText">{formatDate(record.createdAt)}</div>
               </div>
-              <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                <span style={{...styles.badge, backgroundColor: getConfidenceColor(record.predictions?.[0]?.confidence)}}>
+              <div className="confidenceContainer">
+                <span 
+                  className="badge"
+                  style={{ backgroundColor: getConfidenceColor(record.predictions?.[0]?.confidence) }}
+                >
                   {record.predictions?.[0]?.confidence || "N/A"}
                 </span>
                 <span style={{color: '#999'}}>{expandedId === record._id ? "▼" : "▶"}</span>
@@ -106,18 +93,18 @@ const History = () => {
             </div>
 
             {expandedId === record._id && (
-              <div style={styles.expandedContent}>
+              <div className="expandedContent">
                 <div style={{marginBottom: '10px'}}>
-                  <span style={styles.label}>Prediction Type:</span>
-                  <span style={styles.value}>{record.predictionType === 'blood_report' ? '💉 Blood Report' : '🤒 Symptom Check'}</span>
+                  <span className="label">Prediction Type:</span>
+                  <span className="value">{record.predictionType === 'blood_report' ? '💉 Blood Report' : '🤒 Symptom Check'}</span>
                 </div>
                 <div style={{marginBottom: '10px'}}>
-                  <span style={styles.label}>Patient Metrics:</span>
-                  <span style={styles.value}>Age: {record.age || 'N/A'} | BP: {record.bp || 'N/A'}</span>
+                  <span className="label">Patient Metrics:</span>
+                  <span className="value">Age: {record.age || 'N/A'} | BP: {record.bp || 'N/A'}</span>
                 </div>
                 {record.symptoms && record.symptoms.length > 0 && (
                   <div style={{marginBottom: '15px'}}>
-                    <span style={styles.label}>Symptoms:</span>
+                    <span className="label">Symptoms:</span>
                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '5px'}}>
                       {record.symptoms.map((s, i) => (
                         <span key={i} style={{backgroundColor: '#e7f3ff', color: '#0066cc', padding: '2px 8px', borderRadius: '4px', fontSize: '12px'}}>{s}</span>
@@ -126,7 +113,7 @@ const History = () => {
                   </div>
                 )}
                 <div style={{textAlign: 'right'}}>
-                  <button onClick={() => handleDelete(record._id)} style={styles.deleteButton} disabled={deleting}>
+                  <button onClick={() => handleDelete(record._id)} className="deleteButton" disabled={deleting}>
                     {deleting ? "Deleting..." : "Delete Record"}
                   </button>
                 </div>

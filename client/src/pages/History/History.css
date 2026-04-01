@@ -1,0 +1,138 @@
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 28px;
+  color: #333333;
+}
+
+.backButton {
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.backButton:hover {
+  background-color: #5a6268;
+}
+
+.recordCard {
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  background-color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.recordSummary {
+  padding: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.recordSummary:hover {
+  background-color: #e9ecef;
+}
+
+.diseaseName {
+  font-size: 18px;
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 4px;
+}
+
+.dateText {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.expandedContent {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  background-color: #ffffff;
+}
+
+.label {
+  font-weight: bold;
+  color: #495057;
+  margin-right: 10px;
+}
+
+.value {
+  color: #212529;
+}
+
+.badge {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.deleteButton {
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: 10px;
+}
+
+.deleteButton:hover {
+  background-color: #c82333;
+}
+
+.loadingMessage {
+  text-align: center;
+  margin-top: 50px;
+  color: #007bff;
+}
+
+.errorMessage {
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #666;
+}
+
+.confidenceContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailedContent {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 10px;
+}

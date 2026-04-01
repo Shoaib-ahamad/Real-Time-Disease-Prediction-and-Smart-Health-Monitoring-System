@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { RefreshCw } from "lucide-react";
+import "./Captcha.css";
 
 function generateCode(length = 6) {
   const chars =
@@ -75,38 +76,11 @@ const Captcha = ({ onCodeChange }) => {
     drawCaptcha(initialCode);
   }, [onCodeChange]);
 
-  const styles = {
-    wrapper: {
-      display: "flex",
-      alignItems: "center",
-      gap: "10px",
-      marginTop: "10px",
-    },
-
-    canvas: {
-      borderRadius: "10px",
-      border: "1px solid #ccc",
-    },
-
-    button: {
-      width: "40px",
-      height: "40px",
-      borderRadius: "10px",
-      border: "none",
-      background: "#667eea",
-      color: "#fff",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-    },
-  };
-
   return (
-    <div style={styles.wrapper}>
-      <canvas ref={canvasRef} width={150} height={50} style={styles.canvas} />
+    <div className="wrapper">
+      <canvas ref={canvasRef} width={150} height={50} className="canvas" />
 
-      <button onClick={refresh} style={styles.button}>
+      <button onClick={refresh} className="button">
         <RefreshCw size={18} />
       </button>
     </div>
